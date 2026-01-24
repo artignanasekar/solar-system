@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Solar System Barebones Generator</title>
+    <style>
+      body { font-family: monospace; padding: 16px; max-width: 900px; }
+      input, button { font-family: monospace; padding: 6px; margin: 4px 0; }
+      pre { background: #f4f4f4; padding: 12px; white-space: pre-wrap; }
+      .row { margin-bottom: 10px; }
+    </style>
+  </head>
+  <body>
+    <h2>Solar System Generator</h2>
+
+    <div class="row">
+      <label>Seed (optional): </label>
+      <input id="seed" placeholder="arti-01" />
+    </div>
+
+    <div class="row">
+      <label>Life frequency % (parameter): </label>
+      <input id="lifeFreq" type="number" min="0" max="100" value="45" />
+    </div>
+
+    <div class="row">
+      <label>Rings threshold (d20 ≥ X): </label>
+      <input id="ringThreshold" type="number" min="2" max="20" value="11" />
+    </div>
+
+    <div class="row">
+      <button id="one">Generate 1</button>
+      <button id="ten">Generate 10</button>
+    </div>
+
+    <pre id="out">Click generate.</pre>
+
+    <script>
+      function xmur3(str) {
+        let h = 1779033703 ^ str.length;
+        for (let i = 0; i < str.length; i++) {
+          h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+          h = (h << 13) | (h >>> 19);
+        }
+        return function () {
+          h = Math.imul(h ^ (h >>> 16), 2246822507);
+          h = Math.imul(h ^ (h >>> 13), 3266489909);
+          return (h ^= h >>> 16) >>> 0;
+        };
+      }
+      function mulberry32(a) {
+        return function () {
+          let t = (a += 0x6d2b79f5);
+          t = Math.imul(t ^ (t >>> 15), t | 1);
+          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+      function makeRng(seedStr) {
+        const seed = (seedStr && seedStr.trim()) ? seedStr.trim() : String(Date.now());
+        const seedFn = xmur3(seed);
+        return { seed, rng: mulberry32(seedFn()) };
+      }
+
+      function d(sides, rng) { return 1 + Math.floor(rng() * sides); }
+      function roll2d6(rng) { return d(6, rng) + d(6, rng); }
+      function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+      function buildDeck() {
+        const suits = ["♥","♦","♣","♠"];
+        const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+        const deck = [];
+        for (const s of suits) for (const r of ranks) deck.push({suit:s, rank:r});
+        return deck;
+      }
+      function shuffle(arr, rng) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(rng() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      const STAR_2D6 = {
+        2:"Blue giant", 3:"White star", 4:"Yellow-white star", 5:"Yellow star",
+        6:"Orange star", 7:"Red dwarf", 8:"Red dwarf (flares)", 9:"Binary stars",
+        10:"White dwarf", 11:"Neutron star", 12:"Black hole"
+      };
+
+      const PLANET_2D6 = {
+        2:"Airless rock", 3:"Cratered rock", 4:"Rocky thin-atmo", 5:"Rocky habitable-band",
+        6:"Ocean world", 7:"Temperate world", 8:"Desert world", 9:"Jungle / super-Earth",
+        10:"Ice world", 11:"Gas giant", 12:"Gas giant (massive)"
+      };
+
+      const DOMAIN_BY_SUIT = {
+        "♥":"Culture/Faith",
+        "♦":"Trade/Wealth",
+        "♣":"Industry/Science",
+        "♠":"Military/Expansion"
+      };
+
+      function levelFromRank(rank) {
+        if (rank === "A") return "Mythic/Precursor";
+        if (["2","3","4","5"].includes(rank)) return "Early/Local";
+        if (["6","7","8","9"].includes(rank)) return "Developing";
+        if (rank === "10" || rank === "J") return "Modern";
+        if (rank === "Q") return "Advanced";
+        if (rank === "K") return "Post-scarcity";
+        return "Unknown";
+      }
+
+      function genSystem(options) {
+        const { seedInput, lifeFreq, ringThreshold } = options;
+        const { seed, rng } = makeRng(seedInput);
+
+        const lines = [];
+        lines.push(`SEED: ${seed}`);
+
+        const starRoll = roll2d6(rng);
+        lines.push(`STAR (2d6=${starRoll}): ${STAR_2D6[starRoll]}`);
+
+        const countRoll = roll2d6(rng);
+        const planetCount = clamp(countRoll, 3, 12);
+        lines.push(`PLANET COUNT (2d6=${countRoll} -> clamp 3..12): ${planetCount}`);
+
+        const deck = shuffle(buildDeck(), rng);
+
+        lines.push(`PARAMS: lifeFreq=${lifeFreq}% | rings=d20>=${ringThreshold}`);
+        lines.push("");
+
+        for (let i = 1; i <= planetCount; i++) {
+          const base = roll2d6(rng);
+          const orbitBias = i <= 3 ? -1 : i <= 7 ? 0 : 1;
+          const typeRoll = clamp(base + orbitBias, 2, 12);
+          const type = PLANET_2D6[typeRoll];
+
+          const ringRoll = d(20, rng);
+          const rings = ringRoll >= ringThreshold ? "YES" : "no";
+
+          const isGas = type.toLowerCase().includes("gas giant");
+          let life = "None";
+          if (!isGas) {
+            const lifeRoll = d(100, rng);
+            if (lifeRoll <= lifeFreq) {
+
+              life = (d(100, rng) <= 35) ? "Complex" : "Microbial";
+            }
+          }
+
+
+          let civText = "None";
+          if (!isGas && life !== "None") {
+            if (d(4, rng) === 1) {
+              const card = deck.pop();
+              civText = `${card.rank}${card.suit} ${DOMAIN_BY_SUIT[card.suit]} / ${levelFromRank(card.rank)}`;
+            }
+          }
+
+          lines.push(
+            `P${i}: type(2d6 ${base}${orbitBias ? (orbitBias>0?`+${orbitBias}`:orbitBias) : ""} -> ${typeRoll}) ${type} | rings(d20=${ringRoll}) ${rings} | life ${life} | civ ${civText}`
+          );
+        }
+
+        return lines.join("\n");
+      }
+
+      function getOptions() {
+        return {
+          seedInput: document.getElementById("seed").value,
+          lifeFreq: clamp(parseInt(document.getElementById("lifeFreq").value || "0", 10), 0, 100),
+          ringThreshold: clamp(parseInt(document.getElementById("ringThreshold").value || "11", 10), 2, 20),
+        };
+      }
+
+      document.getElementById("one").addEventListener("click", () => {
+        const out = genSystem(getOptions());
+        document.getElementById("out").textContent = out;
+      });
+
+      document.getElementById("ten").addEventListener("click", () => {
+        const opts = getOptions();
+        const baseSeed = (opts.seedInput && opts.seedInput.trim()) ? opts.seedInput.trim() : `batch-${Date.now()}`;
+        const blocks = [];
+        for (let i = 0; i < 10; i++) {
+          blocks.push(`=== OUTPUT ${i+1} ===\n` + genSystem({ ...opts, seedInput: `${baseSeed}-${i+1}` }));
+        }
+        document.getElementById("out").textContent = blocks.join("\n\n");
+      });
+    </script>
+  </body>
+</html>
