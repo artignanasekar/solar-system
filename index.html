@@ -1,193 +1,707 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Solar System Barebones Generator</title>
-    <style>
-      body { font-family: monospace; padding: 16px; max-width: 900px; }
-      input, button { font-family: monospace; padding: 6px; margin: 4px 0; }
-      pre { background: #f4f4f4; padding: 12px; white-space: pre-wrap; }
-      .row { margin-bottom: 10px; }
-    </style>
-  </head>
-  <body>
-    <h2>Solar System Generator</h2>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Solar System Generator — Visual Placeholders</title>
 
-    <div class="row">
-      <label>Seed (optional): </label>
-      <input id="seed" placeholder="arti-01" />
+  <style>
+    :root{
+      --bg: #06070c;
+      --panel: rgba(255,255,255,0.06);
+      --panel2: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.14);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.70);
+      --accent: rgba(155,210,255,0.85);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body::before, body::after{
+      content:"";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -2;
+      background-repeat: repeat;
+    }
+    body::before{
+      opacity: 0.8;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.9) 99%, transparent 100%),
+        radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.65) 99%, transparent 100%),
+        radial-gradient(1px 1px at 70% 40%, rgba(255,255,255,0.8) 99%, transparent 100%),
+        radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.55) 99%, transparent 100%),
+        radial-gradient(1px 1px at 55% 10%, rgba(255,255,255,0.75) 99%, transparent 100%),
+        radial-gradient(1px 1px at 15% 55%, rgba(255,255,255,0.5) 99%, transparent 100%),
+        radial-gradient(1px 1px at 45% 65%, rgba(255,255,255,0.7) 99%, transparent 100%),
+        radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,0.6) 99%, transparent 100%);
+      background-size: 320px 320px;
+      filter: drop-shadow(0 0 1px rgba(255,255,255,0.2));
+    }
+    body::after{
+      z-index: -3;
+      opacity: 1;
+      background-image:
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,0.35) 99%, transparent 100%),
+        radial-gradient(2px 2px at 85% 25%, rgba(255,255,255,0.25) 99%, transparent 100%),
+        radial-gradient(2px 2px at 60% 85%, rgba(255,255,255,0.22) 99%, transparent 100%),
+        radial-gradient(700px 500px at 20% 10%, rgba(155,210,255,0.08) 0%, transparent 60%),
+        radial-gradient(650px 520px at 85% 85%, rgba(255,170,210,0.06) 0%, transparent 55%),
+        radial-gradient(900px 800px at 55% 50%, rgba(255,255,255,0.03) 0%, transparent 60%);
+      background-size: 520px 520px, 520px 520px, 520px 520px, auto, auto, auto;
+    }
+
+    .wrap{
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h3{
+      margin: 6px 0 12px;
+      font-size: 18px;
+      letter-spacing: 0.2px;
+    }
+    .sub{
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      align-items: end;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, var(--panel), var(--panel2));
+      backdrop-filter: blur(6px);
+    }
+    label{
+      font-size: 12px;
+      color: var(--muted);
+      display:block;
+      margin-bottom: 6px;
+    }
+    input, button{
+      font: inherit;
+      color: var(--text);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.05);
+      padding: 8px 10px;
+      outline: none;
+    }
+    input{
+      width: 140px;
+    }
+    input.wide{ width: 220px; }
+    button{
+      cursor:pointer;
+      font-weight: 700;
+      border: 1px solid rgba(155,210,255,0.3);
+      background: linear-gradient(180deg, rgba(155,210,255,0.18), rgba(155,210,255,0.08));
+    }
+    button.secondary{
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.06);
+      font-weight: 650;
+    }
+
+    .system{
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.03));
+      backdrop-filter: blur(6px);
+    }
+    .systemHeader{
+      display:flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .systemHeader b{ color: var(--text); }
+    .chip{
+      display:inline-flex;
+      gap: 8px;
+      align-items:center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+    }
+
+    .strip{
+      display:flex;
+      align-items:center;
+      gap: 14px;
+      padding: 12px;
+      min-height: 140px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.22);
+      overflow-x: auto;
+    }
+    .orbitGroup{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap: 7px;
+      min-width: 92px;
+      flex: 0 0 auto;
+    }
+    .orbitLine{
+      width: 86px;
+      height: 2px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.10);
+    }
+/* placeholder images*/
+    .body{
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.28);
+      background: rgba(255,255,255,0.06);
+      position: relative;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.25) inset, 0 8px 20px rgba(0,0,0,0.35);
+    }
+    .star{
+      border-width: 3px;
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.35), rgba(255,255,255,0.08) 55%, rgba(0,0,0,0.2));
+      box-shadow: 0 0 24px rgba(155,210,255,0.20), 0 8px 26px rgba(0,0,0,0.45);
+    }
+    .ring::after{
+      content:"";
+      position:absolute;
+      left:50%; top:50%;
+      width: 150%; height: 75%;
+      transform: translate(-50%, -50%) rotate(-12deg);
+      border-radius: 999px;
+      border: 2px solid rgba(255,255,255,0.22);
+      background: transparent;
+      pointer-events:none;
+      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.35));
+    }
+
+    .label{
+      font-size: 12px;
+      text-align:center;
+      color: rgba(255,255,255,0.85);
+      line-height: 1.1;
+    }
+    .subLabel{
+      font-size: 11px;
+      text-align:center;
+      color: var(--muted);
+      line-height: 1.15;
+      max-width: 92px;
+    }
+
+    .moons{
+      display:flex;
+      gap: 5px;
+      align-items:center;
+      justify-content:center;
+      flex-wrap: wrap;
+      min-height: 14px;
+    }
+    .moon{
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      border: 1.6px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.04);
+    }
+
+
+    .panel{
+      margin-top: 12px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(0,0,0,0.22);
+    }
+    pre{
+      margin:0;
+      white-space: pre-wrap;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.35;
+    }
+
+    .batch{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .mini{
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 10px;
+      background: rgba(0,0,0,0.22);
+    }
+    .miniHeader{
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .mini .strip{
+      min-height: 110px;
+      padding: 10px;
+    }
+    .mini .orbitGroup{ min-width: 82px; }
+    .mini .orbitLine{ width: 78px; }
+    .mini .subLabel{ max-width: 82px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h3>Solar System Generator (visual placeholders)</h3>
+    <p class="sub">
+      Black space + starfield background. Circles are placeholders that can be swapped to images later.
+      Two+ parameters for tuning: life frequency, rings threshold, moon frequency, orbit bias.
+    </p>
+
+    <div class="controls">
+      <div>
+        <label>Seed (optional)</label>
+        <input id="seed" class="wide" placeholder="arti-01" />
+      </div>
+
+      <div>
+        <label>Life frequency %</label>
+        <input id="lifeFreq" type="number" min="0" max="100" value="45" />
+      </div>
+
+      <div>
+        <label>Rings threshold (d20 ≥ X)</label>
+        <input id="ringThreshold" type="number" min="2" max="20" value="11" />
+      </div>
+
+      <div>
+        <label>Moon frequency %</label>
+        <input id="moonFreq" type="number" min="0" max="100" value="55" />
+      </div>
+
+      <div>
+        <label>Orbit bias strength (0–3)</label>
+        <input id="orbitBias" type="number" min="0" max="3" value="1" />
+      </div>
+
+      <button id="gen1">Generate 1</button>
+      <button id="gen10" class="secondary">Generate 10</button>
+      <button id="gen20" class="secondary">Generate 20</button>
     </div>
 
-    <div class="row">
-      <label>Life frequency % (parameter): </label>
-      <input id="lifeFreq" type="number" min="0" max="100" value="45" />
+    <div id="singleWrap" class="system">
+      <div class="systemHeader">
+        <span class="chip"><b id="sysName">SYS—</b> <span>seed:</span> <span id="sysSeed">—</span></span>
+        <span class="chip"><span>star:</span> <b id="starText">—</b> <span>·</span> <span>planets:</span> <b id="countText">—</b></span>
+      </div>
+      <div id="strip" class="strip"></div>
     </div>
 
-    <div class="row">
-      <label>Rings threshold (d20 ≥ X): </label>
-      <input id="ringThreshold" type="number" min="2" max="20" value="11" />
+    <div class="panel">
+      <label style="margin:0 0 8px; color: var(--muted); font-size:12px;">Text log (for screenshots + debugging)</label>
+      <pre id="log">Click generate.</pre>
     </div>
 
-    <div class="row">
-      <button id="one">Generate 1</button>
-      <button id="ten">Generate 10</button>
+    <div id="batchWrap" style="display:none;">
+      <h4 style="margin:14px 0 8px; color: var(--text);">Batch outputs (screenshot this for Check-in #3)</h4>
+      <div id="batch" class="batch"></div>
     </div>
+  </div>
 
-    <pre id="out">Click generate.</pre>
+<script>
 
-    <script>
-      function xmur3(str) {
-        let h = 1779033703 ^ str.length;
-        for (let i = 0; i < str.length; i++) {
-          h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
-          h = (h << 13) | (h >>> 19);
+  function xmur3(str) {
+    let h = 1779033703 ^ str.length;
+    for (let i = 0; i < str.length; i++) {
+      h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+      h = (h << 13) | (h >>> 19);
+    }
+    return function () {
+      h = Math.imul(h ^ (h >>> 16), 2246822507);
+      h = Math.imul(h ^ (h >>> 13), 3266489909);
+      return (h ^= h >>> 16) >>> 0;
+    };
+  }
+  function mulberry32(a) {
+    return function () {
+      let t = (a += 0x6d2b79f5);
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function makeRng(seedStr) {
+    const seed = (seedStr && seedStr.trim()) ? seedStr.trim() : String(Date.now());
+    const seedFn = xmur3(seed);
+    return { seed, rng: mulberry32(seedFn()) };
+  }
+
+//dice + cards
+  function d(sides, rng) { return 1 + Math.floor(rng() * sides); }
+  function roll2d6(rng) { return d(6, rng) + d(6, rng); }
+  function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+  function buildDeck() {
+    const suits = ["♥","♦","♣","♠"];
+    const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    const deck = [];
+    for (const s of suits) for (const r of ranks) deck.push({suit:s, rank:r});
+    return deck;
+  }
+  function shuffle(arr, rng) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+  const STAR_2D6 = {
+    2:"Blue giant", 3:"White star", 4:"Yellow-white star", 5:"Yellow star",
+    6:"Orange star", 7:"Red dwarf", 8:"Red dwarf (flares)", 9:"Binary stars",
+    10:"White dwarf", 11:"Neutron star", 12:"Black hole"
+  };
+
+  const PLANET_2D6 = {
+    2:"Airless rock", 3:"Cratered rock", 4:"Rocky thin-atmo", 5:"Rocky habitable-band",
+    6:"Ocean world", 7:"Temperate world", 8:"Desert world", 9:"Jungle / super-Earth",
+    10:"Ice world", 11:"Gas giant", 12:"Gas giant (massive)"
+  };
+
+  const DOMAIN_BY_SUIT = {
+    "♥":"Culture/Faith",
+    "♦":"Trade/Wealth",
+    "♣":"Industry/Science",
+    "♠":"Military/Expansion"
+  };
+
+  function levelFromRank(rank) {
+    if (rank === "A") return "Mythic";
+    if (["2","3","4","5"].includes(rank)) return "Early";
+    if (["6","7","8","9"].includes(rank)) return "Developing";
+    if (rank === "10" || rank === "J") return "Modern";
+    if (rank === "Q") return "Advanced";
+    if (rank === "K") return "Post-scarcity";
+    return "Unknown";
+  }
+
+//placeholders
+  function sizeForStar(starLabel) {
+    if (starLabel.includes("Blue")) return 78;
+    if (starLabel.includes("Black hole")) return 64;
+    if (starLabel.includes("Neutron")) return 56;
+    if (starLabel.includes("White dwarf")) return 48;
+    return 62;
+  }
+
+  function sizeForPlanet(typeLabel) {
+    const t = typeLabel.toLowerCase();
+    if (t.includes("gas giant")) return 46;
+    if (t.includes("super-earth")) return 38;
+    if (t.includes("ocean")) return 36;
+    if (t.includes("ice")) return 33;
+    if (t.includes("temperate")) return 33;
+    if (t.includes("desert")) return 31;
+    return 27; // rocky
+  }
+
+  function genSystem(opts) {
+    const { seedInput, lifeFreq, ringThreshold, moonFreq, orbitBias } = opts;
+    const { seed, rng } = makeRng(seedInput);
+
+    const log = [];
+    log.push(`SEED: ${seed}`);
+
+    const starRoll = roll2d6(rng);
+    const starLabel = STAR_2D6[starRoll];
+    log.push(`STAR 2d6=${starRoll} -> ${starLabel}`);
+
+    const countRoll = roll2d6(rng);
+    const planetCount = clamp(countRoll, 3, 12);
+    log.push(`PLANETS 2d6=${countRoll} -> clamp 3..12 = ${planetCount}`);
+
+    const deck = shuffle(buildDeck(), rng);
+
+    const planets = [];
+    for (let i = 1; i <= planetCount; i++) {
+      const base = roll2d6(rng);
+
+      let bias = 0;
+      if (orbitBias > 0) {
+        if (i <= 3) bias = -1 * orbitBias;
+        else if (i <= 7) bias = 0;
+        else bias = 1 * orbitBias;
+      }
+
+      const typeRoll = clamp(base + bias, 2, 12);
+      const typeLabel = PLANET_2D6[typeRoll];
+
+      const ringRoll = d(20, rng);
+      const rings = ringRoll >= ringThreshold;
+
+      const isGas = typeLabel.toLowerCase().includes("gas giant");
+
+      let life = "None";
+      if (!isGas) {
+        const lifeRoll = d(100, rng);
+        if (lifeRoll <= lifeFreq) {
+          life = (d(100, rng) <= 35) ? "Complex" : "Microbial";
         }
-        return function () {
-          h = Math.imul(h ^ (h >>> 16), 2246822507);
-          h = Math.imul(h ^ (h >>> 13), 3266489909);
-          return (h ^= h >>> 16) >>> 0;
-        };
-      }
-      function mulberry32(a) {
-        return function () {
-          let t = (a += 0x6d2b79f5);
-          t = Math.imul(t ^ (t >>> 15), t | 1);
-          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-        };
-      }
-      function makeRng(seedStr) {
-        const seed = (seedStr && seedStr.trim()) ? seedStr.trim() : String(Date.now());
-        const seedFn = xmur3(seed);
-        return { seed, rng: mulberry32(seedFn()) };
       }
 
-      function d(sides, rng) { return 1 + Math.floor(rng() * sides); }
-      function roll2d6(rng) { return d(6, rng) + d(6, rng); }
-      function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
-
-      function buildDeck() {
-        const suits = ["♥","♦","♣","♠"];
-        const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
-        const deck = [];
-        for (const s of suits) for (const r of ranks) deck.push({suit:s, rank:r});
-        return deck;
-      }
-      function shuffle(arr, rng) {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(rng() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
+      let civ = "None";
+      if (!isGas && life !== "None") {
+        if (d(4, rng) === 1) {
+          const card = deck.pop();
+          civ = `${card.rank}${card.suit} ${DOMAIN_BY_SUIT[card.suit]} / ${levelFromRank(card.rank)}`;
         }
-        return arr;
       }
 
-      const STAR_2D6 = {
-        2:"Blue giant", 3:"White star", 4:"Yellow-white star", 5:"Yellow star",
-        6:"Orange star", 7:"Red dwarf", 8:"Red dwarf (flares)", 9:"Binary stars",
-        10:"White dwarf", 11:"Neutron star", 12:"Black hole"
-      };
-
-      const PLANET_2D6 = {
-        2:"Airless rock", 3:"Cratered rock", 4:"Rocky thin-atmo", 5:"Rocky habitable-band",
-        6:"Ocean world", 7:"Temperate world", 8:"Desert world", 9:"Jungle / super-Earth",
-        10:"Ice world", 11:"Gas giant", 12:"Gas giant (massive)"
-      };
-
-      const DOMAIN_BY_SUIT = {
-        "♥":"Culture/Faith",
-        "♦":"Trade/Wealth",
-        "♣":"Industry/Science",
-        "♠":"Military/Expansion"
-      };
-
-      function levelFromRank(rank) {
-        if (rank === "A") return "Mythic/Precursor";
-        if (["2","3","4","5"].includes(rank)) return "Early/Local";
-        if (["6","7","8","9"].includes(rank)) return "Developing";
-        if (rank === "10" || rank === "J") return "Modern";
-        if (rank === "Q") return "Advanced";
-        if (rank === "K") return "Post-scarcity";
-        return "Unknown";
+      // moons
+      let moons = 0;
+      if (d(100, rng) <= moonFreq) {
+        moons = isGas ? d(5, rng) : d(3, rng);
       }
 
-      function genSystem(options) {
-        const { seedInput, lifeFreq, ringThreshold } = options;
-        const { seed, rng } = makeRng(seedInput);
+      log.push(
+        `P${i}: type(2d6=${base}${bias ? (bias>0?`+${bias}`:bias) : ""} -> ${typeRoll}) ${typeLabel} | rings d20=${ringRoll} ${rings?"YES":"no"} | life ${life} | civ ${civ} | moons ${moons}`
+      );
 
-        const lines = [];
-        lines.push(`SEED: ${seed}`);
+      planets.push({ orbit:i, typeLabel, typeRoll, baseRoll:base, bias, rings, ringRoll, life, civ, moons });
+    }
 
-        const starRoll = roll2d6(rng);
-        lines.push(`STAR (2d6=${starRoll}): ${STAR_2D6[starRoll]}`);
-
-        const countRoll = roll2d6(rng);
-        const planetCount = clamp(countRoll, 3, 12);
-        lines.push(`PLANET COUNT (2d6=${countRoll} -> clamp 3..12): ${planetCount}`);
-
-        const deck = shuffle(buildDeck(), rng);
-
-        lines.push(`PARAMS: lifeFreq=${lifeFreq}% | rings=d20>=${ringThreshold}`);
-        lines.push("");
-
-        for (let i = 1; i <= planetCount; i++) {
-          const base = roll2d6(rng);
-          const orbitBias = i <= 3 ? -1 : i <= 7 ? 0 : 1;
-          const typeRoll = clamp(base + orbitBias, 2, 12);
-          const type = PLANET_2D6[typeRoll];
-
-          const ringRoll = d(20, rng);
-          const rings = ringRoll >= ringThreshold ? "YES" : "no";
-
-          const isGas = type.toLowerCase().includes("gas giant");
-          let life = "None";
-          if (!isGas) {
-            const lifeRoll = d(100, rng);
-            if (lifeRoll <= lifeFreq) {
-
-              life = (d(100, rng) <= 35) ? "Complex" : "Microbial";
-            }
-          }
+    const sysName = `SYS-${seed.replace(/\s+/g,"-").slice(0,12)}`;
+    return { sysName, seed, starRoll, starLabel, planetCount, planets, log: log.join("\n") };
+  }
 
 
-          let civText = "None";
-          if (!isGas && life !== "None") {
-            if (d(4, rng) === 1) {
-              const card = deck.pop();
-              civText = `${card.rank}${card.suit} ${DOMAIN_BY_SUIT[card.suit]} / ${levelFromRank(card.rank)}`;
-            }
-          }
+  const $ = (id) => document.getElementById(id);
 
-          lines.push(
-            `P${i}: type(2d6 ${base}${orbitBias ? (orbitBias>0?`+${orbitBias}`:orbitBias) : ""} -> ${typeRoll}) ${type} | rings(d20=${ringRoll}) ${rings} | life ${life} | civ ${civText}`
-          );
-        }
+  function makeBodyCircle({ kind, size, label, dataType, rings }) {
+    const el = document.createElement("div");
+    el.className = `body ${kind}` + (rings ? " ring" : "");
+    el.style.width = size + "px";
+    el.style.height = size + "px";
+    el.setAttribute("data-asset", dataType); // easy mapping later
+    el.title = label;
+    return el;
+  }
 
-        return lines.join("\n");
-      }
+  function renderSingle(sys) {
+    $("batchWrap").style.display = "none";
+    $("batch").innerHTML = "";
 
-      function getOptions() {
-        return {
-          seedInput: document.getElementById("seed").value,
-          lifeFreq: clamp(parseInt(document.getElementById("lifeFreq").value || "0", 10), 0, 100),
-          ringThreshold: clamp(parseInt(document.getElementById("ringThreshold").value || "11", 10), 2, 20),
-        };
-      }
+    $("sysName").textContent = sys.sysName;
+    $("sysSeed").textContent = sys.seed;
+    $("starText").textContent = sys.starLabel;
+    $("countText").textContent = String(sys.planetCount);
 
-      document.getElementById("one").addEventListener("click", () => {
-        const out = genSystem(getOptions());
-        document.getElementById("out").textContent = out;
+    const strip = $("strip");
+    strip.innerHTML = "";
+
+    // star
+    const starGroup = document.createElement("div");
+    starGroup.className = "orbitGroup";
+
+    const starCircle = makeBodyCircle({
+      kind: "star",
+      size: sizeForStar(sys.starLabel),
+      label: sys.starLabel,
+      dataType: `STAR:${sys.starLabel}`,
+      rings: false,
+    });
+
+    const starLabel = document.createElement("div");
+    starLabel.className = "label";
+    starLabel.textContent = "STAR";
+
+    const starSub = document.createElement("div");
+    starSub.className = "subLabel";
+    starSub.textContent = sys.starLabel;
+
+    starGroup.appendChild(starCircle);
+    starGroup.appendChild(starLabel);
+    starGroup.appendChild(starSub);
+
+    strip.appendChild(starGroup);
+
+    // planets
+    sys.planets.forEach((p) => {
+      const g = document.createElement("div");
+      g.className = "orbitGroup";
+
+      const line = document.createElement("div");
+      line.className = "orbitLine";
+      g.appendChild(line);
+
+      const planetCircle = makeBodyCircle({
+        kind: "planet",
+        size: sizeForPlanet(p.typeLabel),
+        label: `P${p.orbit} ${p.typeLabel}`,
+        dataType: `PLANET:${p.typeLabel}`,
+        rings: p.rings,
       });
 
-      document.getElementById("ten").addEventListener("click", () => {
-        const opts = getOptions();
-        const baseSeed = (opts.seedInput && opts.seedInput.trim()) ? opts.seedInput.trim() : `batch-${Date.now()}`;
-        const blocks = [];
-        for (let i = 0; i < 10; i++) {
-          blocks.push(`=== OUTPUT ${i+1} ===\n` + genSystem({ ...opts, seedInput: `${baseSeed}-${i+1}` }));
+      // moooons
+      const moonsWrap = document.createElement("div");
+      moonsWrap.className = "moons";
+      for (let m = 0; m < p.moons; m++) {
+        const moon = document.createElement("div");
+        moon.className = "moon";
+        moon.setAttribute("data-asset", "MOON");
+        moonsWrap.appendChild(moon);
+      }
+
+      const lab = document.createElement("div");
+      lab.className = "label";
+      lab.textContent = `P${p.orbit}`;
+
+      const sub = document.createElement("div");
+      sub.className = "subLabel";
+      sub.textContent = `${p.typeLabel} · life:${p.life} · moons:${p.moons}`;
+
+      g.appendChild(planetCircle);
+      g.appendChild(moonsWrap);
+      g.appendChild(lab);
+      g.appendChild(sub);
+
+      strip.appendChild(g);
+    });
+
+    $("log").textContent = sys.log;
+  }
+
+  function renderBatch(systems) {
+    $("batchWrap").style.display = "block";
+    const batch = $("batch");
+    batch.innerHTML = "";
+
+    systems.forEach((sys, idx) => {
+      const card = document.createElement("div");
+      card.className = "mini";
+
+      const header = document.createElement("div");
+      header.className = "miniHeader";
+      header.innerHTML = `<b style="color:rgba(255,255,255,0.9)">Output ${idx+1}</b> — ${sys.sysName} <span style="opacity:.8">(seed: ${sys.seed})</span>`;
+
+      const strip = document.createElement("div");
+      strip.className = "strip";
+
+      // star
+      const starGroup = document.createElement("div");
+      starGroup.className = "orbitGroup";
+      starGroup.appendChild(
+        makeBodyCircle({
+          kind:"star",
+          size: 50,
+          label: sys.starLabel,
+          dataType: `STAR:${sys.starLabel}`,
+          rings:false
+        })
+      );
+      const sLab = document.createElement("div");
+      sLab.className = "subLabel";
+      sLab.textContent = sys.starLabel;
+      starGroup.appendChild(sLab);
+      strip.appendChild(starGroup);
+
+      // planets (first 6 for compactness) - change later with imgs
+      sys.planets.slice(0, 6).forEach((p) => {
+        const g = document.createElement("div");
+        g.className = "orbitGroup";
+
+        const line = document.createElement("div");
+        line.className = "orbitLine";
+        g.appendChild(line);
+
+        const planet = makeBodyCircle({
+          kind:"planet",
+          size: Math.max(22, Math.floor(sizeForPlanet(p.typeLabel) * 0.88)),
+          label: `P${p.orbit} ${p.typeLabel}`,
+          dataType: `PLANET:${p.typeLabel}`,
+          rings: p.rings
+        });
+
+        const moons = document.createElement("div");
+        moons.className = "moons";
+        for (let m = 0; m < Math.min(p.moons, 4); m++) {
+          const moon = document.createElement("div");
+          moon.className = "moon";
+          moon.setAttribute("data-asset", "MOON");
+          moons.appendChild(moon);
         }
-        document.getElementById("out").textContent = blocks.join("\n\n");
+
+        const lab = document.createElement("div");
+        lab.className = "subLabel";
+        lab.textContent = `P${p.orbit} · ${p.life}`;
+
+        g.appendChild(planet);
+        g.appendChild(moons);
+        g.appendChild(lab);
+        strip.appendChild(g);
       });
-    </script>
-  </body>
+
+      card.appendChild(header);
+      card.appendChild(strip);
+      batch.appendChild(card);
+    });
+
+    renderSingle(systems[0]);
+  }
+
+  function getOpts() {
+    return {
+      seedInput: $("seed").value,
+      lifeFreq: clamp(parseInt($("lifeFreq").value || "0", 10), 0, 100),
+      ringThreshold: clamp(parseInt($("ringThreshold").value || "11", 10), 2, 20),
+      moonFreq: clamp(parseInt($("moonFreq").value || "0", 10), 0, 100),
+      orbitBias: clamp(parseInt($("orbitBias").value || "1", 10), 0, 3),
+    };
+  }
+
+  function genN(n) {
+    const opts = getOpts();
+    const baseSeed = (opts.seedInput && opts.seedInput.trim()) ? opts.seedInput.trim() : `batch-${Date.now()}`;
+    const systems = [];
+    for (let i = 0; i < n; i++) {
+      systems.push(genSystem({ ...opts, seedInput: `${baseSeed}-${i+1}` }));
+    }
+    return systems;
+  }
+
+  $("gen1").addEventListener("click", () => {
+    const sys = genSystem(getOpts());
+    renderSingle(sys);
+  });
+
+  $("gen10").addEventListener("click", () => renderBatch(genN(10)));
+  $("gen20").addEventListener("click", () => renderBatch(genN(20)));
+
+  renderSingle(genSystem(getOpts()));
+</script>
+</body>
 </html>
