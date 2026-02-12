@@ -92,6 +92,9 @@ Take 3–5 screenshots with the **same seed** but different settings:
 
 ---
 
+## Playtesting Feedback
+![Batch output 5](./feedback.png)
+
 ## Known limitations (current scope)
 
 - **Visuals are placeholders:** Planets/stars/moons are stylized circles, not real art assets yet.
